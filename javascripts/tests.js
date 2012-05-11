@@ -551,7 +551,7 @@ suite('math', function () {
 suite('predicates', function () {
     test('nil? nil', function () {
         assert.deepEqual(
-            evalScheem(['nil?', 'nil']),
+            evalScheem(['nil?', '#nil']),
             '#t'
         );
     });

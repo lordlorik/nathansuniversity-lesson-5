@@ -179,7 +179,7 @@ scheem = (function () {
 		if (expr === 'error') throw('Error');
 		
 		// Nil
-		if (expr === 'nil') return null;
+		if (expr === '#nil') return null;
 
 		// Numbers evaluate to themselves
 		if (typeof expr === 'number') return expr;
