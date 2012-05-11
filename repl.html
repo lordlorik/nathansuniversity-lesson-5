@@ -3,12 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <title>Scheem Live Demo by Lord Lorik</title>
+  <link rel="stylesheet" href="codemirror/codemirror.css">
+  <link rel="stylesheet" href="codemirror/blackboard.css">
   <script src="http://nathansuniversity.com/js/jquery-1.7.1.min.js"></script>
+  <script src="codemirror/codemirror.js"></script>
+  <script src="codemirror/scheme.js"></script>
   <script src="javascripts/parser.js"></script>
   <script src="javascripts/scheem.js"></script>
 </head>
 <body>
 
+<div style="border: 2px solid #555; border-radius: 3px">
 <textarea id="input" style="width:100%; height:300px;">
 (begin 
 	(define Y
@@ -25,6 +30,7 @@
 
 	(fact 6))
 </textarea>
+</div>
 <br />
 <input id="runButton" type="button" value="Run" />
 <input id="clearButton" type="button" value="Clear" />
@@ -35,41 +41,47 @@
 </div>
 
 <script>
-  var log = function(msg) {
-      $('#console').append('<p><pre>' + msg + '</pre></p>');
-  };
-  
-  // After page load
-  $(function() {
-	var env = {};
-  
-    $('#runButton').click(function() {
-        var input = $('#input').val();
-		
-        log(input);
-        try {
-            var parsed = scheemParser.parse(input);
-			
-            log('<< PARSED ' + JSON.stringify(parsed) + ' >>');
-            try {
-                var result = scheem.evalScheem(parsed, env);
-				
-                log('> ' + JSON.stringify(result));
-            }
-            catch (e) {
-                log('> ERROR ' + e);
-            }
-        }
-        catch (e) {
-            log('> ERROR ' + e);
-        }
-    });
-    $('#clearButton').click(function() {
-		$('#console').html('');
-		log('WELCOME!');
-		env = {};
-	}).click();
-  });
+	var log = function(msg) {
+		$('#console').append('<p><pre>' + msg + '</pre></p>');
+	};
+
+	var myCodeMirror = CodeMirror.fromTextArea($('#input').get(0), {
+		mode: 'scheme',
+		theme: 'blackboard',
+		lineNumbers: true
+	});
+
+	// After page load
+	$(function() {
+		var env = {};
+
+		$('#runButton').click(function() {
+			var input = $('#input').val();
+
+			log(input);
+			try {
+				var parsed = scheemParser.parse(input);
+
+				log('<< PARSED ' + JSON.stringify(parsed) + ' >>');
+				try {
+					var result = scheem.evalScheem(parsed, env);
+
+					log('> ' + JSON.stringify(result));
+				}
+				catch (e) {
+					log('> ERROR ' + e);
+				}
+			}
+			catch (e) {
+				log('> ERROR ' + e);
+			}
+		});
+		$('#clearButton').click(function() {
+			$('#console').html('');
+			log('WELCOME!');
+			env = {};
+		}).click();
+	});
 </script>
 </body>
 </html>
