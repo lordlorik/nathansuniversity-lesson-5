@@ -1,0 +1,17 @@
+Assignment for lesson 5 of PL101 at http://www.nathansuniversity.com/.
+
+Scheem interpreter with functions plus tests. My flavor of Scheem has the
+following deviations from the 'standard':
+
+* both the + and * operators are variadic
+* the - operator behaves as unary minus receives only one argument
+* the following comparison operators are valid: = <> > < >= <=
+* there's a modulus operator %
+* if takes 1-3 arguments: the first is the expression to evaluate, the 2nd one
+  the value to return if true and the last one the value to return if false.
+  The last two can be omitted, and if returns #t and #f in replacement,
+  respectively.
+* supports NIL (converted to null in JavaScript). The support level is quite
+  low, of course.
+* supports let, let-one, lambda and lambda-one
+* predicates zero?, nil?, empty?

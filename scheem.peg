@@ -1,0 +1,40 @@
+start =
+    blankOrComment* program: spacedExpression?
+        { return program; }
+
+validchar =
+    [0-9a-zA-Z_?!+\-=@#$%^&*/.]
+    
+blank "blank" =
+    [ \r\n\t]
+
+comment "comment" =
+    ";;" [^\r\n]*
+        { return ''; }
+
+blankOrComment =
+    blank
+    / comment
+    
+atom "atom" =
+    digits: [0-9]+
+        { return +digits.join(''); }
+    / chars: validchar+
+        { return chars.join(''); }
+
+quoteExpression "quote" =
+    "'" expr: spacedExpression
+        { return ['quote', expr]; }
+
+listExpression "list" =
+    '(' exprs: spacedExpression* ')'
+        { return exprs; }
+
+expression =
+    atom
+    / quoteExpression
+    / listExpression
+
+spacedExpression =
+    blankOrComment* expr: expression blankOrComment*
+        { return expr; }
