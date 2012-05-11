@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Nathansuniversity-lesson-5 : " />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Nathansuniversity-lesson-5</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/lordlorik/nathansuniversity-lesson-5">View on GitHub</a>
+
+          <h1 id="project_title">Nathansuniversity-lesson-5</h1>
+          <h2 id="project_tagline"></h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/lordlorik/nathansuniversity-lesson-5/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/lordlorik/nathansuniversity-lesson-5/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <p>Assignment for lesson 5 of PL101 at <a href="http://www.nathansuniversity.com/">http://www.nathansuniversity.com/</a>.</p>
+
+<p>Beefed up Scheem interpreter with functions plus tests. My flavor of Scheem has the
+following deviations from the 'standard':</p>
+
+<ul>
+<li>both the + and * operators are variadic</li>
+<li>the - operator behaves as unary minus receives only one argument</li>
+<li>the following comparison operators are valid: = &lt;&gt; &gt; &lt; &gt;= &lt;=</li>
+<li>there's a modulus operator %</li>
+<li>if takes 1-3 arguments: the first is the expression to evaluate, the 2nd one
+the value to return if true and the last one the value to return if false.
+The last two can be omitted, and if returns #t and #f in replacement,
+respectively.</li>
+<li>supports NIL (converted to null in JavaScript). The support level is quite
+low, of course.</li>
+<li>supports let, let-one, lambda and lambda-one</li>
+<li>predicates zero?, nil?, empty?</li>
+</ul>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Nathansuniversity-lesson-5 maintained by <a href="https://github.com/lordlorik">lordlorik</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
