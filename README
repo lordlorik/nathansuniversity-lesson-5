@@ -7,11 +7,12 @@ following deviations from the 'standard':
 * the - operator behaves as unary minus receives only one argument
 * the following comparison operators are valid: = <> > < >= <=
 * there's a modulus operator %
-* if takes 1-3 arguments: the first is the expression to evaluate, the 2nd one
-  the value to return if true and the last one the value to return if false.
-  The last two can be omitted, and if returns #t and #f in replacement,
-  respectively.
-* supports NIL (converted to null in JavaScript). The support level is quite
-  low, of course.
+* if takes 1-3 arguments: the first is the expression to evaluate, the 2nd
+  one the value to return if true and the last one the value to return if
+  false. The last two can be omitted, and if returns #t and #f in replacement,
+  respectively
+* short circuit boolean operators: and, or, not (special cases, not functions)
+* supports #nil
 * supports let, let-one, lambda and lambda-one
-* predicates zero?, nil?, empty?
+* output through alert
+* predicates: zero?, nil?, empty?, list?, atom?, number?, bool?

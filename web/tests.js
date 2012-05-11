@@ -2,22 +2,22 @@ var parseScheem, evalScheem, evalScheemString, assert, expect;
 
 if (typeof module !== 'undefined') {
     // In Node load required modules
-	var chai = require('chai');
-	var mocha = require('mocha');
-	
+    var chai = require('chai');
+    var mocha = require('mocha');
+
     assert = chai.assert;
     expect = chai.expect;
 
     var PEG = require('pegjs');
     var fs = require('fs');
-	var scheem = require('../scheem');
-	
-	try {
-		parseScheem = PEG.buildParser(fs.readFileSync('scheem.peg', 'utf-8')).parse;
-	}
-	catch (e) {
-		parseScheem = PEG.buildParser(fs.readFileSync('../scheem.peg', 'utf-8')).parse;
-	}
+    var scheem = require('../scheem');
+
+    try {
+        parseScheem = PEG.buildParser(fs.readFileSync('scheem.peg', 'utf-8')).parse;
+    }
+    catch (e) {
+        parseScheem = PEG.buildParser(fs.readFileSync('../scheem.peg', 'utf-8')).parse;
+    }
     evalScheem = scheem.evalScheem;
     evalScheemString = scheem.eval;
 }
@@ -34,7 +34,7 @@ else {
 suite('define', function () {
     test('define', function () {
         var env = { bindings: { b: 1 } };
-		
+
         evalScheem(['define', 'a', 3], env);
         assert.deepEqual(
             env.bindings,
@@ -43,7 +43,7 @@ suite('define', function () {
     });
     test('define expression', function () {
         var env = { bindings: { b: 1 } };
-		
+
         evalScheem(['define', 'a', ['+', 'b', 3]], env);
         assert.deepEqual(
             env.bindings,
@@ -53,6 +53,11 @@ suite('define', function () {
     test('define already defined', function () {
         expect(function () {
             evalScheem(['define', 'a', 3], { a: 5 });
+        }).to.throw();
+    });
+    test('define too few parameters', function () {
+        expect(function () {
+            evalScheem(['define', 'a']);
         }).to.throw();
     });
     test('define too many parameters', function () {
@@ -70,25 +75,30 @@ suite('define', function () {
 suite('set!', function () {
     test('set!', function () {
         var env = { bindings: { a: 4, b: 1 } };
-		
+
         evalScheem(['set!', 'a', 3], env);
         assert.deepEqual(
-			env.bindings,
+            env.bindings,
             { a: 3, b: 1 }
         );
     });
     test('set! expression', function () {
         var env = { bindings: { a: 4, b: 1 } };
-		
+
         evalScheem(['set!', 'a', ['+', 1, 2]], env);
         assert.deepEqual(
-			env.bindings,
+            env.bindings,
             { a: 3, b: 1 }
         );
     });
     test('set! not yet defined', function () {
         expect(function () {
             evalScheem(['set!', 'a', 3]);
+        }).to.throw();
+    });
+    test('set! too few parameters', function () {
+        expect(function () {
+            evalScheem(['set!', 'a']);
         }).to.throw();
     });
     test('set! too many parameters', function () {
@@ -104,25 +114,30 @@ suite('set!', function () {
 });
 
 suite('quote', function () {
-    test('a number', function () {
+    test('quote a number', function () {
         assert.deepEqual(
             evalScheem(['quote', 3]),
             3
         );
     });
-    test('an atom', function () {
+    test('quote an atom', function () {
         assert.deepEqual(
             evalScheem(['quote', 'dog']),
             'dog'
         );
     });
-    test('a list', function () {
+    test('quote a list', function () {
         assert.deepEqual(
             evalScheem(['quote', [1, 2, 3]]),
             [1, 2, 3]
         );
     });
-    test('too many parameters', function () {
+    test('quote too few parameters', function () {
+        expect(function () {
+            evalScheem(['quote']);
+        }).to.throw();
+    });
+    test('quote too many parameters', function () {
         expect(function () {
             evalScheem(['quote', [1], 2]);
         }).to.throw();
@@ -130,44 +145,59 @@ suite('quote', function () {
 });
 
 suite('cons', function () {
-    test('a number', function () {
+    test('cons a number', function () {
         assert.deepEqual(
             evalScheem(['cons', 1, ['quote', [2, 3]]]),
             [1, 2, 3]
         );
     });
-    test('a list', function () {
+    test('cons a list', function () {
         assert.deepEqual(
             evalScheem(['cons', ['quote', [1, 2]], ['quote', [2, 3]]]),
             [[1, 2], 2, 3]
         );
     });
+    test('cons too few parameters', function () {
+        expect(function () {
+            evalScheem(['cons', 1]);
+        }).to.throw();
+    });
+    test('cons too many parameters', function () {
+        expect(function () {
+            evalScheem(['cons', 1, [2], [3]]);
+        }).to.throw();
+    });
 });
 
 suite('car', function () {
-    test('a list', function () {
+    test('car a list', function () {
         assert.deepEqual(
             evalScheem(['car', ['quote', [[2, 3], 3, 4]]]),
             [2, 3]
         );
     });
-    test('a number', function () {
+    test('car a number', function () {
         assert.deepEqual(
             evalScheem(['car', ['quote', [1, 2]]]),
             1
         );
     });
-    test('empty list', function () {
+    test('car empty list', function () {
         expect(function () {
             evalScheem(['car', ['quote', []]]);
         }).to.throw();
     });
-    test('too many parameters', function () {
+    test('car too few parameters', function () {
+        expect(function () {
+            evalScheem(['car']);
+        }).to.throw();
+    });
+    test('car too many parameters', function () {
         expect(function () {
             evalScheem(['car', ['quote', [1, 2]], 3]);
         }).to.throw();
     });
-    test('non list', function () {
+    test('car non list', function () {
         expect(function () {
             evalScheem(['car', 1]);
         }).to.throw();
@@ -175,29 +205,29 @@ suite('car', function () {
 });
 
 suite('cdr', function () {
-    test('a list', function () {
+    test('cdr a list', function () {
         assert.deepEqual(
             evalScheem(['cdr', ['quote', [1, 3, 4]]]),
             [3, 4]
         );
     });
-    test('a single element list', function () {
+    test('cdr a single element list', function () {
         assert.deepEqual(
             evalScheem(['cdr', ['quote', [1]]]),
             []
         );
     });
-    test('an empty list', function () {
+    test('cdr an empty list', function () {
         expect(function () {
             evalScheem(['cdr', ['quote', []]]);
         }).to.throw();
     });
-    test('too many parameters', function () {
+    test('cdr too many parameters', function () {
         expect(function () {
             evalScheem(['cdr', ['quote', [1, 2]], 3]);
         }).to.throw();
     });
-    test('non list', function () {
+    test('cdr non list', function () {
         expect(function () {
             evalScheem(['cdr', 3]);
         }).to.throw();
@@ -205,69 +235,75 @@ suite('cdr', function () {
 });
 
 suite('begin', function () {
-    test('a number', function () {
+    test('begin nothing', function () {
+        assert.deepEqual(
+            evalScheem(['begin']),
+            '#nil'
+        );
+    });
+    test('begin numbers', function () {
         assert.deepEqual(
             evalScheem(['begin', 1, 2, 3]),
             3
         );
     });
-    test('an expression', function () {
+    test('begin expressions', function () {
         assert.deepEqual(
-            evalScheem(['begin', 1, 2, ['+', 3, 4]]),
+            evalScheem(['begin', ['+', 1, 2], ['+', 2, 3], ['+', 3, 4]]),
             7
         );
     });
-    test('change environment', function () {
+    test('begin change environment', function () {
         var env = { bindings: { a: 4 } };
-		
+
         evalScheem(['begin', ['set!', 'a', 3]], env);
         assert.deepEqual(
             env.bindings,
             { a: 3 }
         );
     });
-    test('track environment', function () {
+    test('begin track environment', function () {
         var env = { bindings: { a: 4 } };
-		
+
         assert.deepEqual(
-			evalScheem(['begin', ['set!', 'a', 3], ['+', 'a', 2]], env),
+            evalScheem(['begin', ['set!', 'a', 3], ['+', 'a', 2]], env),
             5
         );
     });
 });
 
-suite('if', function () {
-    test('cond true, two branches', function () {
+suite('if & bool operators', function () {
+    test('if cond true, two branches', function () {
         assert.deepEqual(
             evalScheem(['if', ['=', 1, 1], 2, 3]),
             2
         );
     });
-    test('cond false, two branches', function () {
+    test('if cond false, two branches', function () {
         assert.deepEqual(
             evalScheem(['if', ['<>', 1, 1], 2, 3]),
             3
         );
     });
-    test('cond true, one branch', function () {
+    test('if cond true, one branch', function () {
         assert.deepEqual(
             evalScheem(['if', ['=', 1, 1], 2]),
             2
         );
     });
-    test('cond false, one branch', function () {
+    test('if cond false, one branch', function () {
         assert.deepEqual(
             evalScheem(['if', ['<>', 1, 1], 2]),
             '#f'
         );
     });
-    test('cond true, no branches', function () {
+    test('if cond true, no branches', function () {
         assert.deepEqual(
             evalScheem(['if', ['=', 1, 1]]),
             '#t'
         );
     });
-    test('cond false, no branches', function () {
+    test('if cond false, no branches', function () {
         assert.deepEqual(
             evalScheem(['if', ['<>', 1, 1]]),
             '#f'
@@ -283,25 +319,166 @@ suite('if', function () {
             evalScheem(['if']);
         }).to.throw();
     });
+    test('if invalid condition', function () {
+        expect(function () {
+            evalScheem(['if', 'x']);
+        }).to.throw();
+    });
+    test('and true', function () {
+        assert.deepEqual(
+            evalScheem(['and', '#t']),
+            '#t'
+        );
+    });
+    test('and false', function () {
+        assert.deepEqual(
+            evalScheem(['and', '#f']),
+            '#f'
+        );
+    });
+    test('and true & true', function () {
+        assert.deepEqual(
+            evalScheem(['and', '#t', '#t']),
+            '#t'
+        );
+    });
+    test('and true & false', function () {
+        assert.deepEqual(
+            evalScheem(['and', '#t', '#f']),
+            '#f'
+        );
+    });
+    test('and false & false', function () {
+        assert.deepEqual(
+            evalScheem(['and', '#f', '#f']),
+            '#f'
+        );
+    });
+    test('and false & true', function () {
+        assert.deepEqual(
+            evalScheem(['and', '#f', '#t']),
+            '#f'
+        );
+    });
+    test('and short circuit', function () {
+        assert.deepEqual(
+            evalScheem(['and', '#f', 'error']),
+            '#f'
+        );
+    });
+    test('and non boolean', function () {
+        expect(function () {
+            evalScheem(['and', 1, 'a']);
+        }).to.throw();
+    });
+    test('and too few parameters', function () {
+        expect(function () {
+            evalScheem(['and']);
+        }).to.throw();
+    });
+    test('or true', function () {
+        assert.deepEqual(
+            evalScheem(['or', '#t']),
+            '#t'
+        );
+    });
+    test('or false', function () {
+        assert.deepEqual(
+            evalScheem(['or', '#f']),
+            '#f'
+        );
+    });
+    test('or true & true', function () {
+        assert.deepEqual(
+            evalScheem(['or', '#t', '#t']),
+            '#t'
+        );
+    });
+    test('or true & false', function () {
+        assert.deepEqual(
+            evalScheem(['or', '#t', '#f']),
+            '#t'
+        );
+    });
+    test('or false & false', function () {
+        assert.deepEqual(
+            evalScheem(['or', '#f', '#f']),
+            '#f'
+        );
+    });
+    test('or false & true', function () {
+        assert.deepEqual(
+            evalScheem(['or', '#f', '#t']),
+            '#t'
+        );
+    });
+    test('or short circuit', function () {
+        assert.deepEqual(
+            evalScheem(['or', '#t', 'error']),
+            '#t'
+        );
+    });
+    test('or non boolean', function () {
+        expect(function () {
+            evalScheem(['or', 1, 'a']);
+        }).to.throw();
+    });
+    test('or too few parameters', function () {
+        expect(function () {
+            evalScheem(['or']);
+        }).to.throw();
+    });
+    test('not true', function () {
+        assert.deepEqual(
+            evalScheem(['not', '#t']),
+            '#f'
+        );
+    });
+    test('not false', function () {
+        assert.deepEqual(
+            evalScheem(['not', '#f']),
+            '#t'
+        );
+    });
+    test('not non boolean', function () {
+        expect(function () {
+            evalScheem(['not', 1]);
+        }).to.throw();
+    });
+    test('not too few parameters', function () {
+        expect(function () {
+            evalScheem(['not']);
+        }).to.throw();
+    });
+    test('not too many parameters', function () {
+        expect(function () {
+            evalScheem(['not', '#t', '#f']);
+        }).to.throw();
+    });
 });
 
 suite('let-one & let', function () {
     test('let-one evaluation & scoping', function () {
         var env = { bindings: { a: 4, b: 1 } };
 
-		assert.deepEqual(
-			evalScheem(['let-one', 'a', 3, ['+', 'a', 'b']], env),
-			4
-		);
+        assert.deepEqual(
+            evalScheem(['let-one', 'a', 3, ['+', 'a', 'b']], env),
+            4
+        );
     });
     test('let-one environment preservation', function () {
         var env = { bindings: { a: 4, b: 1 } };
 
-		evalScheem(['let-one', 'a', 3, ['+', 'a', 2]], env)
+        evalScheem(['let-one', 'a', 3, ['+', 'a', 2]], env)
         assert.deepEqual(
-			env.bindings,
+            env.bindings,
             { a: 4, b: 1 }
         );
+    });
+    test('let-one too few parameters', function () {
+        expect(function () {
+            evalScheem(['let-one', 'a', 3]);
+        }).to.throw();
     });
     test('let-one too many parameters', function () {
         expect(function () {
@@ -316,35 +493,40 @@ suite('let-one & let', function () {
     test('let evaluation & scoping', function () {
         var env = { bindings: { a: 4, b: 1 } };
 
-		assert.deepEqual(
-			evalScheem(['let', [['a', 3]], ['+', 'a', 'b']], env),
-			4
-		);
+        assert.deepEqual(
+            evalScheem(['let', [['a', 3]], ['+', 'a', 'b']], env),
+            4
+        );
     });
     test('let many bindings', function () {
         var env = { bindings: { a: 4, b: 1 } };
 
-		assert.deepEqual(
-			evalScheem(['let', [['a', 6], ['b', 4]], ['+', 'a', 'b']], env),
-			10
-		);
+        assert.deepEqual(
+            evalScheem(['let', [['a', 6], ['b', 4]], ['+', 'a', 'b']], env),
+            10
+        );
     });
     test('let no bindings', function () {
         var env = { bindings: { a: 4, b: 1 } };
 
-		assert.deepEqual(
-			evalScheem(['let', [], ['+', 'a', 'b']], env),
-			5
-		);
+        assert.deepEqual(
+            evalScheem(['let', [], ['+', 'a', 'b']], env),
+            5
+        );
     });
     test('let environment preservation', function () {
         var env = { bindings: { a: 4, b: 1 } };
 
-		evalScheem(['let', [['a', 3]], ['+', 'a', 2]], env)
+        evalScheem(['let', [['a', 3]], ['+', 'a', 2]], env)
         assert.deepEqual(
-			env.bindings,
+            env.bindings,
             { a: 4, b: 1 }
         );
+    });
+    test('let too few parameters', function () {
+        expect(function () {
+            evalScheem(['let', [['a', 3]]]);
+        }).to.throw();
     });
     test('let too many parameters', function () {
         expect(function () {
@@ -367,27 +549,27 @@ suite('lambda-one & lambda', function () {
     test('lambda-one evaluation & scoping', function () {
         var env = { bindings: { a: 4, b: 1 } };
 
-		assert.deepEqual(
-			evalScheem(['lambda-one', 'x', ['+', 'x', 'a']], env)(3),
-			7
-		);
+        assert.deepEqual(
+            evalScheem(['lambda-one', 'x', ['+', 'x', 'a']], env)(3),
+            7
+        );
     });
     test('lambda-one environment preservation', function () {
         var env = { bindings: { a: 4, b: 1 } };
 
-		evalScheem(['lambda-one', 'a', ['*', 'a', 2]], env)(3)
+        evalScheem(['lambda-one', 'a', ['*', 'a', 2]], env)(3)
         assert.deepEqual(
-			env.bindings,
+            env.bindings,
             { a: 4, b: 1 }
         );
     });
     test('lambda-one anonymous invocation', function () {
         var env = { bindings: { a: 4, b: 1 } };
 
-		assert.deepEqual(
-			evalScheem([['lambda-one', 'x', ['+', 'x', 'a']], 3], env),
-			7
-		);
+        assert.deepEqual(
+            evalScheem([['lambda-one', 'x', ['+', 'x', 'a']], 3], env),
+            7
+        );
     });
     test('lambda-one too many parameters', function () {
         expect(function () {
@@ -403,41 +585,41 @@ suite('lambda-one & lambda', function () {
     test('lambda evaluation & scoping', function () {
         var env = { bindings: { a: 4, b: 1 } };
 
-		assert.deepEqual(
-			evalScheem(['lambda', ['x'], ['+', 'x', 'a']], env)(3),
-			7
-		);
+        assert.deepEqual(
+            evalScheem(['lambda', ['x'], ['+', 'x', 'a']], env)(3),
+            7
+        );
     });
     test('lambda many bindings', function () {
         var env = { bindings: { a: 4, b: 1 } };
 
-		assert.deepEqual(
-			evalScheem(['lambda', ['x', 'y'], ['+', 'x', 'y', 'b']], env)(3, 4),
-			8
-		);
+        assert.deepEqual(
+            evalScheem(['lambda', ['x', 'y'], ['+', 'x', 'y', 'b']], env)(3, 4),
+            8
+        );
     });
     test('lambda no bindings', function () {
         var env = { bindings: { a: 4, b: 1 } };
 
-		assert.deepEqual(
-			evalScheem(['lambda', [], ['+', 'a', 'b']], env)(),
-			5
-		);
+        assert.deepEqual(
+            evalScheem(['lambda', [], ['+', 'a', 'b']], env)(),
+            5
+        );
     });
     test('lambda environment preservation', function () {
         var env = { bindings: { a: 4, b: 1 } };
 
-		evalScheem(['lambda', ['a'], ['*', 'a', 2]], env)(3)
+        evalScheem(['lambda', ['a'], ['*', 'a', 2]], env)(3)
         assert.deepEqual(
-			env.bindings,
+            env.bindings,
             { a: 4, b: 1 }
         );
     });
     test('lambda anonymous invocation', function () {
-		assert.deepEqual(
-			evalScheem([['lambda', ['x', 'y'], ['+', 'x', 'y']], 3, 2]),
-			5
-		);
+        assert.deepEqual(
+            evalScheem([['lambda', ['x', 'y'], ['+', 'x', 'y']], 3, 2]),
+            5
+        );
     });
     test('lambda too many parameters', function () {
         expect(function () {
@@ -468,7 +650,13 @@ suite('math', function () {
             1
         );
     });
-    test('add multiple', function () {
+    test('add negative', function () {
+        assert.deepEqual(
+            evalScheem(['+', 1, -2]),
+            -1
+        );
+    });
+    test('add many', function () {
         assert.deepEqual(
             evalScheem(['+', 1, 2, 3]),
             6
@@ -479,15 +667,36 @@ suite('math', function () {
             evalScheem(['+', 1, [2]]);
         }).to.throw();
     });
+    test('add too few arguments', function () {
+        expect(function () {
+            evalScheem(['+']);
+        }).to.throw();
+    });
     test('subtract', function () {
         assert.deepEqual(
             evalScheem(['-', 1, 2]),
-            -1 
+            -1
+        );
+    });
+    test('subtract negative', function () {
+        assert.deepEqual(
+            evalScheem(['-', 1, -2]),
+            3
         );
     });
     test('substract invalid', function () {
         expect(function () {
             evalScheem(['-', 1, [2]]);
+        }).to.throw();
+    });
+    test('substract too few arguments', function () {
+        expect(function () {
+            evalScheem(['-']);
+        }).to.throw();
+    });
+    test('substract too many arguments', function () {
+        expect(function () {
+            evalScheem(['-', 2, 3, 4]);
         }).to.throw();
     });
     test('unary minus', function () {
@@ -504,7 +713,13 @@ suite('math', function () {
     test('multiply', function () {
         assert.deepEqual(
             evalScheem(['*', 3, 2]),
-            6 
+            6
+        );
+    });
+    test('multiply negative', function () {
+        assert.deepEqual(
+            evalScheem(['*', -1, 2]),
+            -2
         );
     });
     test('multiply single', function () {
@@ -513,7 +728,7 @@ suite('math', function () {
             3
         );
     });
-    test('multiply multiple', function () {
+    test('multiply many', function () {
         assert.deepEqual(
             evalScheem(['*', 2, 3, 4]),
             24
@@ -524,15 +739,30 @@ suite('math', function () {
             evalScheem(['*', 1, [2]]);
         }).to.throw();
     });
+    test('multiply too few arguments', function () {
+        expect(function () {
+            evalScheem(['*']);
+        }).to.throw();
+    });
     test('divide', function () {
         assert.deepEqual(
             evalScheem(['/', 12, 3]),
-            4 
+            4
         );
     });
     test('divide invalid', function () {
         expect(function () {
             evalScheem(['/', 1, [2]]);
+        }).to.throw();
+    });
+    test('divide too few arguments', function () {
+        expect(function () {
+            evalScheem(['/', 2]);
+        }).to.throw();
+    });
+    test('divide too many arguments', function () {
+        expect(function () {
+            evalScheem(['/', 2, 3, 4]);
         }).to.throw();
     });
     test('modulus', function () {
@@ -546,6 +776,16 @@ suite('math', function () {
             evalScheem(['%', 1, [2]]);
         }).to.throw();
     });
+    test('modulus too few arguments', function () {
+        expect(function () {
+            evalScheem(['%', 2]);
+        }).to.throw();
+    });
+    test('modulus too many arguments', function () {
+        expect(function () {
+            evalScheem(['%', 2, 3, 4]);
+        }).to.throw();
+    });
 });
 
 suite('predicates', function () {
@@ -555,11 +795,40 @@ suite('predicates', function () {
             '#t'
         );
     });
-    test('nil? not nil', function () {
+    test('nil? atom', function () {
+        assert.deepEqual(
+            evalScheem(['nil?', ['quote', 'a']]),
+            '#f'
+        );
+    });
+    test('nil? number', function () {
         assert.deepEqual(
             evalScheem(['nil?', 5]),
             '#f'
         );
+    });
+    test('nil? list', function () {
+        assert.deepEqual(
+            evalScheem(['nil?', ['quote', [5]]]),
+            '#f'
+        );
+    });
+    test('nil? true', function () {
+        assert.deepEqual(
+            evalScheem(['nil?', '#t']),
+            '#f'
+        );
+    });
+    test('nil? false', function () {
+        assert.deepEqual(
+            evalScheem(['nil?', '#f']),
+            '#f'
+        );
+    });
+    test('nil? too few parameters', function () {
+        expect(function () {
+            evalScheem(['nil?']);
+        }).to.throw();
     });
     test('nil? too many parameters', function () {
         expect(function () {
@@ -578,6 +847,41 @@ suite('predicates', function () {
             '#f'
         );
     });
+    test('zero? nil', function () {
+        assert.deepEqual(
+            evalScheem(['zero?', '#nil']),
+            '#f'
+        );
+    });
+    test('zero? atom', function () {
+        assert.deepEqual(
+            evalScheem(['zero?', ['quote', 'a']]),
+            '#f'
+        );
+    });
+    test('zero? list', function () {
+        assert.deepEqual(
+            evalScheem(['zero?', ['quote', [5]]]),
+            '#f'
+        );
+    });
+    test('zero? true', function () {
+        assert.deepEqual(
+            evalScheem(['zero?', '#t']),
+            '#f'
+        );
+    });
+    test('zero? false', function () {
+        assert.deepEqual(
+            evalScheem(['zero?', '#f']),
+            '#f'
+        );
+    });
+    test('zero? too few parameters', function () {
+        expect(function () {
+            evalScheem(['zero?']);
+        }).to.throw();
+    });
     test('zero? too many parameters', function () {
         expect(function () {
             evalScheem(['zero?', 5, 6]);
@@ -589,21 +893,246 @@ suite('predicates', function () {
             '#t'
         );
     });
-    test('empty? not empty', function () {
+    test('empty? non empty list', function () {
         assert.deepEqual(
             evalScheem(['empty?', ['quote', [5]]]),
             '#f'
         );
     });
-    test('empty? not list', function () {
+    test('empty? nil', function () {
+        assert.deepEqual(
+            evalScheem(['empty?', '#nil']),
+            '#f'
+        );
+    });
+    test('empty? atom', function () {
+        assert.deepEqual(
+            evalScheem(['empty?', ['quote', 'a']]),
+            '#f'
+        );
+    });
+    test('empty? number', function () {
         assert.deepEqual(
             evalScheem(['empty?', 5]),
             '#f'
         );
     });
+    test('empty? true', function () {
+        assert.deepEqual(
+            evalScheem(['empty?', '#t']),
+            '#f'
+        );
+    });
+    test('empty? false', function () {
+        assert.deepEqual(
+            evalScheem(['empty?', '#f']),
+            '#f'
+        );
+    });
+    test('empty? too few parameters', function () {
+        expect(function () {
+            evalScheem(['empty?']);
+        }).to.throw();
+    });
     test('empty? too many parameters', function () {
         expect(function () {
             evalScheem(['empty?', 5, 6]);
+        }).to.throw();
+    });
+    test('list? empty list', function () {
+        assert.deepEqual(
+            evalScheem(['list?', ['quote', []]]),
+            '#t'
+        );
+    });
+    test('list? non empty list', function () {
+        assert.deepEqual(
+            evalScheem(['list?', ['quote', [5]]]),
+            '#t'
+        );
+    });
+    test('list? nil', function () {
+        assert.deepEqual(
+            evalScheem(['list?', '#nil']),
+            '#f'
+        );
+    });
+    test('list? atom', function () {
+        assert.deepEqual(
+            evalScheem(['list?', ['quote', 'a']]),
+            '#f'
+        );
+    });
+    test('list? number', function () {
+        assert.deepEqual(
+            evalScheem(['list?', 5]),
+            '#f'
+        );
+    });
+    test('list? true', function () {
+        assert.deepEqual(
+            evalScheem(['list?', '#t']),
+            '#f'
+        );
+    });
+    test('list? false', function () {
+        assert.deepEqual(
+            evalScheem(['list?', '#f']),
+            '#f'
+        );
+    });
+    test('list? too few parameters', function () {
+        expect(function () {
+            evalScheem(['empty?']);
+        }).to.throw();
+    });
+    test('list? too many parameters', function () {
+        expect(function () {
+            evalScheem(['list?', [5], 6]);
+        }).to.throw();
+    });
+    test('atom? atom', function () {
+        assert.deepEqual(
+            evalScheem(['atom?', ['quote', 'a']]),
+            '#t'
+        );
+    });
+    test('atom? nil', function () {
+        assert.deepEqual(
+            evalScheem(['atom?', '#nil']),
+            '#f'
+        );
+    });
+    test('atom? number', function () {
+        assert.deepEqual(
+            evalScheem(['atom?', 5]),
+            '#f'
+        );
+    });
+    test('atom? list', function () {
+        assert.deepEqual(
+            evalScheem(['atom?', ['quote', [5]]]),
+            '#f'
+        );
+    });
+    test('atom? true', function () {
+        assert.deepEqual(
+            evalScheem(['atom?', '#t']),
+            '#f'
+        );
+    });
+    test('atom? false', function () {
+        assert.deepEqual(
+            evalScheem(['atom?', '#f']),
+            '#f'
+        );
+    });
+    test('atom? too few parameters', function () {
+        expect(function () {
+            evalScheem(['atom?']);
+        }).to.throw();
+    });
+    test('atom? too many parameters', function () {
+        expect(function () {
+            evalScheem(['atom?', 'a', 2]);
+        }).to.throw();
+    });
+    test('number? number', function () {
+        assert.deepEqual(
+            evalScheem(['number?', 1]),
+            '#t'
+        );
+    });
+    test('number? zero', function () {
+        assert.deepEqual(
+            evalScheem(['number?', 0]),
+            '#t'
+        );
+    });
+    test('number? nil', function () {
+        assert.deepEqual(
+            evalScheem(['number?', '#nil']),
+            '#f'
+        );
+    });
+    test('number? atom', function () {
+        assert.deepEqual(
+            evalScheem(['number?', ['quote', 'a']]),
+            '#f'
+        );
+    });
+    test('number? list', function () {
+        assert.deepEqual(
+            evalScheem(['number?', ['quote', [5]]]),
+            '#f'
+        );
+    });
+    test('number? true', function () {
+        assert.deepEqual(
+            evalScheem(['number?', '#t']),
+            '#f'
+        );
+    });
+    test('number? false', function () {
+        assert.deepEqual(
+            evalScheem(['number?', '#f']),
+            '#f'
+        );
+    });
+    test('number? too few parameters', function () {
+        expect(function () {
+            evalScheem(['number?']);
+        }).to.throw();
+    });
+    test('number? too many parameters', function () {
+        expect(function () {
+            evalScheem(['number?', 5, 6]);
+        }).to.throw();
+    });
+    test('bool? true', function () {
+        assert.deepEqual(
+            evalScheem(['bool?', '#t']),
+            '#t'
+        );
+    });
+    test('bool? false', function () {
+        assert.deepEqual(
+            evalScheem(['bool?', '#f']),
+            '#t'
+        );
+    });
+    test('bool? nil', function () {
+        assert.deepEqual(
+            evalScheem(['bool?', '#nil']),
+            '#f'
+        );
+    });
+    test('bool? atom', function () {
+        assert.deepEqual(
+            evalScheem(['bool?', ['quote', 'a']]),
+            '#f'
+        );
+    });
+    test('bool? number', function () {
+        assert.deepEqual(
+            evalScheem(['bool?', 5]),
+            '#f'
+        );
+    });
+    test('bool? list', function () {
+        assert.deepEqual(
+            evalScheem(['bool?', ['quote', [5]]]),
+            '#f'
+        );
+    });
+    test('bool? too few parameters', function () {
+        expect(function () {
+            evalScheem(['bool?']);
+        }).to.throw();
+    });
+    test('bool? too many parameters', function () {
+        expect(function () {
+            evalScheem(['bool?', 'a', 2]);
         }).to.throw();
     });
 });
@@ -636,61 +1165,61 @@ suite('comparison', function () {
     test('less than', function () {
         assert.deepEqual(
             evalScheem(['<', 2, 3]),
-            '#t' 
+            '#t'
         );
     });
     test('not less than', function () {
         assert.deepEqual(
             evalScheem(['<', 12, 3]),
-            '#f' 
+            '#f'
         );
     });
     test('less than or equal to, less', function () {
         assert.deepEqual(
             evalScheem(['<=', 4, 12]),
-            '#t' 
+            '#t'
         );
     });
     test('less than or equal to, equal', function () {
         assert.deepEqual(
             evalScheem(['<=', 12, 12]),
-            '#t' 
+            '#t'
         );
     });
     test('not less than or equal to', function () {
         assert.deepEqual(
             evalScheem(['<=', 3, 2]),
-            '#f' 
+            '#f'
         );
     });
     test('greater than', function () {
         assert.deepEqual(
             evalScheem(['>', 12, 3]),
-            '#t' 
+            '#t'
         );
     });
     test('not greater than', function () {
         assert.deepEqual(
             evalScheem(['>', 2, 3]),
-            '#f' 
+            '#f'
         );
     });
     test('greater than or equal to, greater', function () {
         assert.deepEqual(
             evalScheem(['>=', 12, 4]),
-            '#t' 
+            '#t'
         );
     });
     test('greater than or equal to, equal', function () {
         assert.deepEqual(
             evalScheem(['>=', 12, 12]),
-            '#t' 
+            '#t'
         );
     });
     test('not greater than or equal to', function () {
         assert.deepEqual(
             evalScheem(['>=', 2, 3]),
-            '#f' 
+            '#f'
         );
     });
 });
@@ -786,9 +1315,9 @@ suite('evaluation', function () {
     test('Y combinator & factorial', function () {
         assert.deepEqual(
             evalScheemString(
-			'(begin ' +
-			'(define Y (lambda (f) ((lambda (x) (f (lambda (v) ((x x) v)))) (lambda (x) (f (lambda (v) ((x x) v))))))) ' +
-			'(define fact (Y (lambda (f) (lambda (n) (if (= n 0) 1 (* n (f (- n 1)))))))) (fact 5))'),
+            '(begin ' +
+            '(define Y (lambda (f) ((lambda (x) (f (lambda (v) ((x x) v)))) (lambda (x) (f (lambda (v) ((x x) v))))))) ' +
+            '(define fact (Y (lambda (f) (lambda (n) (if (= n 0) 1 (* n (f (- n 1)))))))) (fact 5))'),
             120
         );
     });
