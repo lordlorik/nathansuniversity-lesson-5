@@ -56,7 +56,7 @@
 		var env = {};
 
 		$('#runButton').click(function() {
-			var input = $('#input').val();
+			var input = myCodeMirror.getValue();
 
 			log(input);
 			try {
